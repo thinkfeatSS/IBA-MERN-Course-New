@@ -1,0 +1,50 @@
+// Set the name of the hidden property and the change event for visibility
+var hidden, visibilityChange;
+if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support 
+    hidden = "hidden";
+    visibilityChange = "visibilitychange";
+} else if (typeof document.mozHidden !== "undefined") {
+    hidden = "mozHidden";
+    visibilityChange = "mozvisibilitychange";
+} else if (typeof document.msHidden !== "undefined") {
+    hidden = "msHidden";
+    visibilityChange = "msvisibilitychange";
+} else if (typeof document.webkitHidden !== "undefined") {
+    hidden = "webkitHidden";
+    visibilityChange = "webkitvisibilitychange";
+}
+var sessionTimeout;
+
+// If the page is hidden, pause the video;
+// if the page is shown, play the video
+function handleVisibilityChange() {
+    if (!document[hidden]) {
+        if (window.sessionTimeOutTime <= Date.now()) {
+            window.location.href = '/user/logout';
+        } else {
+            resetSession();
+        }
+    }
+}
+
+// Handle page visibility change   
+document.addEventListener(visibilityChange, handleVisibilityChange, false);
+
+function resetSession() {
+    if (window.sessionTimeOutTime <= Date.now()) {
+        window.location.href = '/user/logout';
+    } else {
+        clearTimeout(sessionTimeout);
+        //Expire time is in minutes so multiply it by 60000 to get the amount of miliseconds 
+        window.sessionTimeOutTime = Date.now() + expireTime * 60000;
+        sessionTimeout = setTimeout(function(){
+            window.location.href = '/user/logout';
+        }, window.sessionTimeOutTime - Date.now());
+    }
+}
+
+resetSession();
+
+document.onclick = resetSession;
+
+document.onkeypress = resetSession;

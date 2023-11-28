@@ -1,0 +1,138 @@
+var initialize = function(_) {
+    _.mixin({
+        'pluck': _.map,
+        'contains': _.includes,
+        'where': _.filter,
+        'asArray': function(input) {
+            if(input instanceof Array) return input;
+            if((typeof input === 'string') && input.indexOf(',')>-1) return input.split(/,/g);
+            return [input];
+        },
+        'removeFormatting': function(str) {
+            if(str=='undefined') return 0;
+            str = (str+'').replace(/,/g,'');
+            str = str.replace(/%/g,'');
+            return $.trim(str);
+        },
+        'pad':function(number, padStr) {
+            var len = padStr.length;
+            number = number.toString();
+            return number.length >= len ? number : (padStr + number).slice(-len);
+        },
+        'serialize': function(obj) {
+            var str = [];
+            for(var p in obj)
+                str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+            return str.join("&");
+        },
+        'findKeyUsingValue':function(obj, value) {
+            var ret = -1;
+            Object.keys(obj).map(function(k) {
+                if(obj[k] == value) ret = k;
+            });
+            return ret;
+        },
+        'bestMatch':function(array, match) {
+            var best = -1;
+            var lowdiff = Infinity;
+            for(var n in array) {
+                if(Math.abs(array[n]-parseFloat(match)) < lowdiff || array[n]==parseFloat(match)) {
+                    lowdiff = Math.abs(array[n]-match);
+                    best = array[n];
+                }
+            }
+            return best;
+        },
+        'asCamelCase': function(obj) {
+            var keys = Object.keys(obj);
+            var newKeys = [];
+            var ret = {};
+
+            for(var o in keys) {
+                var cap = keys[o].substr(0,1).toLowerCase();
+                var newKey = cap + keys[o].substr(1, keys[o].length-1);
+                keys[o][0] = cap;
+                ret[newKey] = obj[keys[o]];
+            }
+
+            return ret;
+        },
+        'toCamelCase': function(obj) { // recursive version of asCamelCase - we should consider phasing out asCamelCase in favor of this function
+
+            var modify = function(nested) {
+                if(!nested) {
+                    console.warn('_.asCamelCase was called but an object was not passed in:', nested);
+                    // throw new Error('_.asCamelCase was called but an object was not passed in:', nested);
+                    return nested;
+                }
+                if(!nested || nested == 'undefined' || nested===false || (typeof nested != 'object')) {
+                    return nested;
+                }
+                var keys = Object.keys(nested);
+                var newKeys = [];
+                var ret = {};
+                for(var o in keys) {
+                    var cap = keys[o].substr(0,1).toLowerCase();
+                    var newKey = cap + keys[o].substr(1, keys[o].length-1);
+                    keys[o][0] = cap;
+                    if(typeof nested[keys[o]] == 'object' && !(nested[keys[o]] instanceof Array)) { // handle options
+                        if(!nested[keys[o]]) {
+                            ret[newKey] = nested[keys[o]];
+                        } else {
+                            ret[newKey] = modify(nested[keys[o]]);
+                        }
+                    } else if(nested[keys[o]] instanceof Array) {
+                        ret[newKey] = nested[keys[o]].map(function (a) { // handle arrays
+                            if(!a) return a;
+                            return modify(a);
+                        });
+                    } else if(typeof nested[keys[o]] == 'number' || typeof nested[keys[o]] == 'boolean') {
+                        ret[newKey] = nested[keys[o]];
+                    } else {
+                        ret[newKey] = nested[keys[o]] || null;
+                    }
+                }
+
+                return ret;
+            };
+
+            return modify(obj);
+        },
+        'fileSize':function(input) {
+            var length = typeof input == 'string' ? input.length : input;
+            var fSExt = new Array('Bytes', 'KB', 'MB', 'GB');
+            var ret = length; i=0;while(ret>900){ret/=1024;i++;}
+
+            return (Math.round(ret*100)/100) + ' ' + fSExt[i];
+        },
+        'constructorName':function(instance){
+           var funcNameRegex = /function (.{1,})\(/;
+           var results = (funcNameRegex).exec((instance).constructor.toString());
+           return (results && results.length > 1) ? results[1] : "";
+        },
+        'contractToVerbose':function(contract, data) {
+            var flipped = _.invert(contract);
+            return data.map(function(set) {
+                var obj = {};
+                for(var key in set) {
+                   obj[flipped[key]] = set[key];
+                }
+                return obj;
+            });
+        },
+        'contractToSuccinct':function(contract, data) {
+            return data.map(function(set) {
+                var obj = {};
+                for(var key in set) {
+                    obj[contract[key]] = set[key];
+                }
+                return obj;
+            });
+        }
+    });
+}
+if (typeof module === 'object' && module.exports) {
+    module.exports = initialize;
+} else {
+    initialize(_);
+}

@@ -1,0 +1,23 @@
+{
+  "name": "protfolio-api",
+  "version": "1.0.0",
+  "description": "api for my prortfolio project",
+  "main": "./backend/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thinkfeatSS/MERN-Stack-IBA-Course.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/thinkfeatSS/MERN-Stack-IBA-Course/issues"
+  },
+  "homepage": "https://github.com/thinkfeatSS/MERN-Stack-IBA-Course#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^8.0.1"
+  }
+}

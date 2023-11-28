@@ -1,0 +1,163 @@
+/**
+ * Add a stylesheet rule to the document (it may be better practice
+ * to dynamically change classes, so style information can be kept in
+ * genuine stylesheets and avoid adding extra elements to the DOM).
+ * Note that an array is needed for declarations and rules since ECMAScript does
+ * not guarantee a predictable object iteration order, and since CSS is 
+ * order-dependent.
+ * @param {Array} rules Accepts an array of JSON-encoded declarations
+ * @example
+addStylesheetRules([
+  ['h2', // Also accepts a second argument as an array of arrays instead
+    ['color', 'red'],
+    ['background-color', 'green', true] // 'true' for !important rules 
+  ], 
+  ['.myClass', 
+    ['background-color', 'yellow']
+  ]
+]);
+*/
+function addStylesheetRules(rules) {
+  var styleEl = document.createElement('style');
+
+  // Append <style> element to <head>
+  document.head.appendChild(styleEl);
+
+  // Grab style element's sheet
+  var styleSheet = styleEl.sheet;
+
+  for (var i = 0; i < rules.length; i++) {
+    var j = 1,
+      rule = rules[i],
+      selector = rule[0],
+      propStr = '';
+    // If the second argument of a rule is an array of arrays, correct our variables.
+    if (Array.isArray(rule[1][0])) {
+      rule = rule[1];
+      j = 0;
+    }
+
+    for (var pl = rule.length; j < pl; j++) {
+      var prop = rule[j];
+      propStr += prop[0] + ': ' + prop[1] + (prop[2] ? ' !important' :
+        '') + ';\n';
+    }
+
+    // Insert CSS Rule
+    styleSheet.insertRule(selector + '{' + propStr + '}', styleSheet
+      .cssRules.length);
+  }
+}
+
+function addPointerToCardImage() {
+  var styleEl = document.createElement('style');
+
+  // Append <style> element to <head>
+  document.head.appendChild(styleEl);
+
+  // Grab style element's sheet
+  var styleSheet = styleEl.sheet;
+  styleSheet.insertRule(".lpc_card__image {cursor: pointer !important;}", 0);
+}
+
+
+function waitForTaglet(name, callback) {
+  if (window.lpTag) {
+    var taglet = lpTag && lpTag.taglets && lpTag.taglets[name];
+    if (taglet) {
+      console.log("Taglet " + name +
+        " is already present. No need to wait.");
+      callback(taglet);
+    } else {
+      lpTag.events.bind('LPTAG', 'TAGLET_STARTED', function (event) {
+        if (event.name == name) {
+          console.log("Taglet " + name +
+            " has just been started. Finished waiting.");
+          callback(lpTag.taglets[name]);
+        }
+      });
+    }
+  }
+}
+
+function postChatCallback(data, eventInfo) {
+  if (data.state === 'postChat') {
+    console.log('called');
+    addStylesheetRules([
+      ['.lp-window-root .lp_survey_area .lp_pages_area .lp_radio_button input[type=radio]:checked+label:before, .lp-window-root .lp_survey_area .lp_pages_area .lp_radio_button input[type=radio]:not(:checked)+label:before, .lp-window-root .lp_survey_area .lp_pages_area .lp_radio_button input[type=radio]:checked+label:after, .lp-window-root .lp_survey_area .lp_pages_area .lp_radio_button input[type=radio]:not(:checked)+label:after',
+        ['content', 'none'],
+      ],
+    ]);
+  }
+}
+
+waitForTaglet("lpUnifiedWindow", function (lpUnifiedWindow) {
+  addPointerToCardImage();
+  lpTag.events.bind('lpUnifiedWindow', 'state', postChatCallback);
+});
+
+/*
+var onLPElementInserted = function (containerSelector, elementSelector, callback) {
+
+  var onMutationsObserved = function (mutations) {
+    mutations.forEach(function (mutation) {
+      if (mutation.addedNodes.length) {
+        var elements = $(mutation.addedNodes).find(elementSelector);
+        for (var i = 0, len = elements.length; i < len; i++) {
+          callback(elements[i]);
+        }
+      }
+    });
+  };
+
+  var target = $(containerSelector)[0];
+  var config = { childList: true, subtree: true };
+  var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+  var observer = new MutationObserver(onMutationsObserved);
+  observer.observe(target, config);
+
+}
+
+lpTag.events.bind("lpUnifiedWindow", "state", function (a, b) {
+  if (a.state == "initialised" || a.state == "resume") {
+    var el = document.getElementById("lpChat");
+    el.setAttribute('data-private', '');
+  }
+  if (a.state == "init") {
+    onLPElementInserted('#lpChat', '.lp_title', function (element) {
+      if (element.innerText.indexOf("We have blocked") > -1) {
+        element.innerText = "We've flagged one of the words you used in your response as abusive language.";
+      }
+    });
+  }
+});
+*/
+
+
+function addAccessibility(text) {
+  const lpChatDiv = document.getElementById('lpChat');
+  const allChatLines = lpChatDiv.getElementsByClassName('lp-json-pollock');
+  [].forEach.call(allChatLines, (div) => {
+    if (div.getAttribute('aria-live') !== 'polite') {
+      div.setAttribute('aria-live', 'polite');
+    }
+  });
+}
+
+
+window.lpTag.hooks.push({
+  name: 'AFTER_GET_LINES',
+  callback(options) {
+    try {
+      options.data.lines.forEach((line) => {
+        if (line && line.type === 'richContent') {
+          setTimeout(function test() {
+            addAccessibility(line)
+          }, 100);
+        }
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+});
