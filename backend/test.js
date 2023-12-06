@@ -1,30 +1,13 @@
-// importing mogoose library for database manipulation
-// importing express library for server side request handeling 
-const express = require('express');
+const fs = require('fs');
 
-// creating a server object
-const app = express();
-app.get('/',(req,res)=>{
-    res.send("Wellome to home page")
-})
-// get request
-app.get('/getRequest',(req, res)=>{
-    res.send('Hello World');
-})
-// Routes ---- /getSingleProject
-const project = {
-    "title": "Ecommerce",
-    "description": "kjasdjkf;lasjd;l",
-    "price" : "5$"
+// console.log("Before Reading Files")
+// fs.readFileSync("test.txt",'utf8',(err,data)=>{console.log(data);});
+// console.log("After Reading Files")
+try {
+    var a = 2;
+    console.log("I am try block");
+    console.log(b);
+}catch {
+    console.log("I am catch block");
 }
-app.get('/getSingleProject',(req,res)=>{
-    res.send(project)
-}
-// {
-    // "title": "Ecommerce",
-    // "description": "kjasdjkf;lasjd;l",
-    // "price" : "5$"
-// }
-
-// Start server
-app.listen(5000,()=>{console.log('server listing at port 5000')});
+console.log("out side excetion handling");

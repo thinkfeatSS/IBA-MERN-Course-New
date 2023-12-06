@@ -5,6 +5,11 @@ module.exports = {
     extend: {
       fontFamily: {
         Poppins: "Poppins",
+        Raleway: "Raleway",
+      },
+      colors: {
+        primary: '#DA722C', // your primary color
+        secondary: '#6F7DFB', // your secondary color
       },
     },
   },
