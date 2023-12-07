@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const DB_URI = 'mongodb+srv://isoomro:isoomro@cluster0.stkwc.mongodb.net/?retryWrites=true&w=majority'
 const Description = require('./models/descriptionModel');
 const {createDescription, getDescription} = require("./controller/descriptionController");
-const {createProject, getAllProjects, getSingleProject, deleteProject} = require('./controller/projectController')
+const {createProject, getAllProjects, getSingleProject, deleteProject, updateProject} = require('./controller/projectController')
 // server initialization
 const app = express();
 // use - call middileware
@@ -21,7 +21,8 @@ app.get('/api/v1/getDescription',getDescription);
 app.post('/api/v1/createProject',createProject);
 app.get('/api/v1/getAllProjects',getAllProjects);
 app.get('/api/v1/getSingleProject/:projectId',getSingleProject);
-app.delete('/api/v1/deleteProject/:projectId',deleteProject);
+app.delete('/api/v1/deleteProject/:projectId',deleteProject)
+app.put('/api/v1/updateProject/:projectId',updateProject);
 
 mongoose.connect(DB_URI).then(()=>{console.log('connected')}).catch((error)=>{console.log(error)});
 
