@@ -1,19 +1,38 @@
-
+import NavBar from './components/NavBar';
+import Hero from './components/Hero';
+import About from './components/About';
+import Skills from './components/Skills';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 function App() {
-  return (
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() =>{
+    getDescription();
+    setLoading(false);
+  },[])
+const getDescription = async ()=>{
+  try{
+    const descriptions = await axios.get("http://localhost:5000/api/v1/getDescription");
+    if (descriptions.status === 200){
+      setDescription(descriptions.data.results[0].descriptionField);
+    }
+  }catch(e){console.log(e)}
+}
+return (
     <div className="App">
-    <section className="bg-gradient-to-b from-secondary to-[#057ADA] h-screen  ">
-    <nav className="flex items-center justify-between mx-8 pt-[3.75rem] md:pt-12">
-      <h1 className="text-4xl md:text-[2.5rem] font-black text-white">GD.</h1>
-      <div className="hidden md:flex md:items-center md:gap-[42px] lg:gap-[3.75rem] text-white">
-        <h1>About</h1>
-        <h1>Services</h1>
-        <h1>Our Work</h1>
-        <button className="py-3 px-8 bg-[#023047] rounded-full ">Enrol Now</button>
-      </div>
-      <h1 className="text-[2.5rem] md:hidden">=</h1>
-    </nav>
-    </section>
+
+    {(loading)?<h1>Loading</h1>:
+
+    <div>
+    <NavBar />
+    <Hero />
+    <About desc={description} />
+    <Skills />
+    </div>
+    }
+
     </div>
   );
 }
