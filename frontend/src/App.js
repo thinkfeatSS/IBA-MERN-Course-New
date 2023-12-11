@@ -5,20 +5,31 @@ import Skills from './components/Skills';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 function App() {
+
   const [description, setDescription] = useState("");
+  const [info, setInfo] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() =>{
+    getInfo()
     getDescription();
     setLoading(false);
   },[])
+  const getInfo = async ()=>{
+    try {
+      const response = await axios.get("http://localhost:5000/api/v1/getInfo");
+      if(response.status === 200){
+        setInfo(response.data.info);
+      }
+    }catch(e) {alert(e)}
+  }
 const getDescription = async ()=>{
   try{
-    const descriptions = await axios.get("http://localhost:5000/api/v1/getDescription");
-    if (descriptions.status === 200){
-      setDescription(descriptions.data.results[0].descriptionField);
+    const response = await axios.get("http://localhost:5000/api/v1/getDescription");
+    if (response.status === 200){
+      setDescription(response.data.results[0].descriptionField);
     }
-  }catch(e){console.log(e)}
+  }catch(e){alert(e)}
 }
 return (
     <div className="App">
@@ -28,7 +39,7 @@ return (
     <div>
     <NavBar />
     <Hero />
-    <About desc={description} />
+    <About desc={description} info={info} />
     <Skills />
     </div>
     }

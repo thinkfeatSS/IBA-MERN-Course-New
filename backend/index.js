@@ -16,11 +16,13 @@ app.use(cors());
 // Description Routers 
 const description = require('./routes/descriptionRoute')
 const review = require('./routes/reviewRoute')
-// Project Routers
 const project = require('./routes/projectRoute')
+const info = require('./routes/inforoutes')
+// Project Routers
 app.use('/api/v1',description);
 app.use('/api/v1',project);
 app.use('/api/v1',review);
+app.use('/api/v1',info);
 
 
 // Review Routers
