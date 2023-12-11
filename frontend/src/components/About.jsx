@@ -15,8 +15,8 @@ const About = ({desc, info}) => {
            {desc}
           </p>
           <div className="flex mt-10 items-center gap-7 justify-center">
-            {info?.map((content) => (
-              <div key={content.count}>
+            {info?.map((content,i) => (
+              <div key={i}>
                 <h3 className="text-2xl md:text-4xl font-semibold text-white">
                   {content.count}
                 </h3>
