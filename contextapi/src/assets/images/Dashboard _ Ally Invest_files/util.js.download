@@ -1,0 +1,256 @@
+function targetopener(mylink, closeme, closeonly)
+{
+    if (! (window.focus && window.opener))return true;
+    window.opener.focus();
+    if (! closeonly)window.opener.location.href=mylink.href;
+    if (closeme)window.close();
+    return false;
+}
+
+Date.daysInMonth = function(year, month) {
+    return new Date(year, month  + 1, 0).getDate();
+};
+
+Date.prototype.roundDownToNearestMinute = function(minutes) {
+    this.setMinutes(this.getMinutes()  - (this.getMinutes() % minutes));
+    this.setSeconds(0);
+    return this;
+};
+
+/*
+ * Function to calculate the absolute difference in days, months and years between 2 days taking into account variable month lengths and leap years
+ * It ignores any time component (ie hours, minutes and seconds)
+ *
+ */
+Date.prototype.dateDiff=function(date1){
+    /*
+     * setup 'empty' return object
+     */
+    var ret = {days:0, months:0, years:0};
+
+    /*
+     * If the dates are equal, return the 'empty' object
+     */
+    if (date1 >= this) return ret;
+
+    /*
+     * First get the number of full years
+     */
+
+    var year1 = date1.getFullYear();
+    var year2 = this.getFullYear();
+
+    var month1 = date1.getMonth();
+    var month2 = this.getMonth();
+
+    var day1 = date1.getDate();
+    var day2 = this.getDate();
+
+    /*
+     * Set initial values bearing in mind the months or days may be negative
+     */
+
+    ret.years = year2 - year1;
+    ret.months = month2 - month1;
+    ret.days = day2 - day1;
+
+    /*
+     * If the day difference is negative
+     * eg this = 13 oct, date1 = 25 sept
+     */
+    if (ret.days < 0){
+        /*
+         * Use temporary dates to get the number of days remaining in the month
+         */
+        var dtmp1 = new Date(date1.getFullYear(), date1.getMonth() + 1, 1, 0, 0, -1);
+
+        var numDays = dtmp1.getDate();
+
+        ret.months -= 1;
+        ret.days += numDays;
+    }
+
+    /*
+     * If the month difference is negative
+     */
+    if (ret.months < 0){
+        ret.months += 12;
+        ret.years -= 1;
+    }
+
+    return ret;
+};
+
+Date.prototype.daysBetween = function(date1) {
+  //Get 1 day in milliseconds
+  var one_day=1000*60*60*24;
+
+  // Calculate the difference in milliseconds
+  var difference_ms = this.getTime() - date1.getTime();
+
+  // Convert back to days and return
+  return Math.round(difference_ms/one_day);
+};
+
+//mainly used to distingish SPX weeklies...since they are are really SPXW
+Date.prototype.isWeekly = function() {
+    var flipDate = new Date();
+    flipDate.setFullYear(2015, 1, 15);//note : month is zero based here.  the option flip date is 2/15/2015
+
+    //if(this.getDay() == 5) {
+        if(this < flipDate) return true;
+
+        if( this.getFullYear() === 2019, this.getMonth() === 3, this.getDate() === 18){
+          return false;
+        }
+
+        var thirdFriday = new Date(this.getFullYear(), this.getMonth(), 15);
+
+        while(thirdFriday.getDay() != 5) {
+            thirdFriday = new Date(thirdFriday.setDate(thirdFriday.getDate() + 1));
+        }
+
+        // after the third friday is found, check to see if the date passed in is that third friday
+        // ADDITIONALLY, check if the date passed in is the saturday following the third friday
+        var isWeekly = this.getDate() != thirdFriday.getDate() && this.getDate() != thirdFriday.getDate() + 1;
+
+        return isWeekly;    
+};
+
+//VIX monthly exp date is the Wednesday that is 30 days before the third Friday of the following calendar month (might be 3rd Weds, might be 4th)
+//If that Wednesday is a holiday, the expiration is the previous business day
+Date.prototype.isVixWeekly = function() {
+
+    var vixMonthly = new Date(this.getFullYear(), this.getMonth() + 1, 15);
+    while (vixMonthly.getDay() !== 5) {
+        vixMonthly = new Date(vixMonthly.setDate(vixMonthly.getDate() + 1));
+    }
+
+    //set Date to 30 days before the 3rd Friday of next month
+    vixMonthly.setDate((vixMonthly.getDate()-30));
+
+    //check to see if the incoming date matches Vix Monthly date
+    var isWeekly = this.getDate() != vixMonthly.getDate();
+
+    return isWeekly;
+}
+
+if (!String.prototype.format) {
+    String.prototype.format = function() {
+        var args = arguments;
+        return this.replace(/{(\d+)}/g, function(match, number) {
+            return typeof args[number] != 'undefined' ? args[number] : match;
+        });
+    };
+}
+
+Date.prototype.toMMDDYYYY = function() {
+    return (this.getMonth() + 1) + "/" + (this.getDate()) + "/" + (this.getFullYear());
+};
+
+Date.prototype.toYYYYMMDD = function() {
+    return (this.getFullYear() + (('0' + (this.getMonth()+1)).slice(-2)) + (('0' + this.getDate()).slice(-2)));
+};
+
+Date.prototype.getWeekOfMonth = function(exact) {
+	exact=true;
+    var month = this.getMonth();
+    var year = this.getFullYear();
+    var firstWeekday = new Date(year, month, 1).getDay();
+    var lastDateOfMonth = new Date(year, month + 1, 0).getDate();
+    var offsetDate = this.getDate() + firstWeekday - 1;
+    var index = 1; // start index at 0 or 1, your choice
+    var weeksInMonth = index + Math.ceil((lastDateOfMonth + firstWeekday - 7) / 7);
+    var week = index + Math.floor(offsetDate / 7);
+    if (exact || week < 2 + index) return week;
+    return week === weeksInMonth ? index + 5 : week;
+};
+
+// Support for Business Day math
+Number.prototype.mod = function(n) {
+    return ((this%n)+n)%n;
+};
+
+Date.prototype.addBusDays = function(dd) {
+    var wks = Math.floor(dd/5);
+    var dys = dd.mod(5);
+    var dy = this.getDay();
+    if (dy === 6 && dys > -1) {
+        if (dys === 0) {
+            dys-=2;
+            dy+=2;
+        }
+        dys++; dy -= 6;
+    }
+    if (dy === 0 && dys < 1) {
+        if (dys === 0) {
+            dys+=2;
+            dy-=2;
+        }
+        dys--;
+        dy += 6;
+    }
+    if (dy + dys > 5) dys += 2;
+    if (dy + dys < 1) dys -= 2;
+    this.setDate(this.getDate()+wks*7+dys);
+};
+
+// More Date Math functions
+Date.isLeapYear = function (year) {
+    return (((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0));
+};
+
+Date.getDaysInMonth = function (year, month) {
+    return [31, (Date.isLeapYear(year) ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month];
+};
+
+Date.prototype.isLeapYear = function () {
+    var y = this.getFullYear();
+    return (((y % 4 === 0) && (y % 100 !== 0)) || (y % 400 === 0));
+};
+
+Date.prototype.getDaysInMonth = function () {
+    return Date.getDaysInMonth(this.getFullYear(), this.getMonth());
+};
+
+Date.prototype.addMonths = function (value) {
+    var n = this.getDate();
+    this.setDate(1);
+    this.setMonth(this.getMonth() + value);
+    this.setDate(Math.min(n, this.getDaysInMonth()));
+    return this;
+};
+
+Date.prototype.getMonthName = function(lang) {
+    lang = lang && (lang in Date.locale) ? lang : 'en';
+    return Date.locale[lang].month_names[this.getMonth()];
+};
+
+Date.prototype.getMonthNameShort = function(lang) {
+    lang = lang && (lang in Date.locale) ? lang : 'en';
+    return Date.locale[lang].month_names_short[this.getMonth()];
+};
+
+Date.locale = {
+    en: {
+       month_names: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+       month_names_short: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    }
+};
+
+// _.mixin({
+//     asCamelCase: function(obj) {
+//         var keys = Object.keys(obj);
+//         var newKeys = [];
+//         var ret = {};
+
+//         for(var o in keys) {
+//             var cap = keys[o].substr(0,1).toLowerCase();
+//             var newKey = cap + keys[o].substr(1, keys[o].length-1);
+//             keys[o][0] = cap;
+//             ret[newKey] = obj[keys[o]];
+//         }
+
+//         return ret;
+//     }
+// });
