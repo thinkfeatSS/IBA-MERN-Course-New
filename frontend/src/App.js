@@ -8,8 +8,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route exact path="/" element={<Home />} />
-          <Route exact path="/admindashboard" element={<Admin />} />
-          <Route exact path="*" element={<Notfound />} />
+          {/* <Route exact path="/admindashboard" element={<Admin />} /> */}
+          {/* <Route exact path="*" element={<Notfound />} /> */}
         </Routes>
       </BrowserRouter>
     </div>
